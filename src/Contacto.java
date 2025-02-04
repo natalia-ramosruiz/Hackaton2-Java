@@ -9,6 +9,19 @@ public class Contacto {
         this.telefono = telefono.trim();
     }
 
+    @Override
+    public String toString() {
+        return nombre + " " + apellido + " - " + telefono;
+    }
+
+    @Override public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Contacto contacto = (Contacto) obj;
+        return nombre.equalsIgnoreCase(contacto.nombre) && apellido.equalsIgnoreCase(contacto.apellido);
+
+    }
+
     public String getNombre() {
         return nombre;
     }
@@ -33,5 +46,4 @@ public class Contacto {
         this.telefono = telefono;
     }
 }
-
 
