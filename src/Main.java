@@ -34,7 +34,6 @@ public class Main {
         System.out.println("7. Verificar espacios libres");
         System.out.println("8. Salir");
         System.out.print("Seleccione una opción: ");
-        System.out.print("\033[H\033[2J");
     }
 
     private static void ejecutarOpcion(int opcion) {

@@ -96,7 +96,7 @@ public class Agenda {
         System.out.println("Contacto no encontrado, no se puede eliminar.");
     }
 
-    //* Método para modificar el teléfono de un contacto
+    //* Metodo para modificar el teléfono de un contacto
     public void modificarTelefono(String nombre, String apellido, String nuevoTelefono) {
 
         for (int i = 0; i < cantidadDeContactos; i++) {
