@@ -1,9 +1,10 @@
 import javax.swing.*;
         import javax.swing.table.*;
         import java.awt.*;
+        import java.awt.*;
         import java.awt.event.*;
 
-public class AgendaGUI extends JFrame {
+public class InteractiveView extends JFrame {
     private Agenda agenda;
     private JTable tablaContactos;
     private DefaultTableModel modeloTabla;
@@ -12,7 +13,7 @@ public class AgendaGUI extends JFrame {
     private static final Color COLOR_PRIMARIO = new Color(41, 128, 185);
     private static final Color COLOR_FONDO = new Color(236, 240, 241);
 
-    public AgendaGUI() {
+    public InteractiveView() {
         // Pedir tamaño de la agenda
         String input = JOptionPane.showInputDialog(null,
                 "Ingrese el tamaño de la agenda (o presione Cancelar para usar el tamaño por defecto de 10):",
@@ -28,7 +29,7 @@ public class AgendaGUI extends JFrame {
 
     private void configurarVentana() {
         setTitle("Agenda Telefónica");
-        setSize(800, 600);
+        setSize(1200, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
@@ -61,15 +62,23 @@ public class AgendaGUI extends JFrame {
         JPanel botonesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         botonesPanel.setBackground(COLOR_FONDO);
 
-        JButton agregarBtn = crearBoton("Agregar", new Color(46, 204, 113));
-        JButton eliminarBtn = crearBoton("Eliminar", new Color(217, 231, 60));
-        JButton modificarBtn = crearBoton("Modificar", new Color(52, 152, 219));
-        JButton limpiarBtn = crearBoton("Limpiar", new Color(255, 73, 0));
+        JButton agregarBtn = crearBoton("Agregar", new Color(143, 220, 178));
+        JButton eliminarBtn = crearBoton("Eliminar", new Color(229, 137, 127));
+        JButton modificarBtn = crearBoton("Modificar", new Color(114, 179, 222));
+        JButton limpiarBtn = crearBoton("Limpiar", new Color(220, 126, 89));
+        JButton buscarBtn = crearBoton("Buscar", new Color(193, 142, 218));
+        JButton listarBtn = crearBoton("Lista", new Color(213, 210, 124));
+        JButton verificarLlenaBtn = crearBoton("Agenda Llena", new Color(129, 225, 125));
+        JButton salirBtn = crearBoton("Salir", new Color(150, 100, 80));
 
         botonesPanel.add(agregarBtn);
         botonesPanel.add(eliminarBtn);
         botonesPanel.add(modificarBtn);
         botonesPanel.add(limpiarBtn);
+        botonesPanel.add(buscarBtn);
+        botonesPanel.add(listarBtn);
+        botonesPanel.add(verificarLlenaBtn);
+        botonesPanel.add(salirBtn);
 
         // Agregar panel de botones al formPanel
         gbc.gridy = 3;
@@ -96,7 +105,7 @@ public class AgendaGUI extends JFrame {
         tablaContactos = new JTable(modeloTabla);
         tablaContactos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaContactos.getTableHeader().setBackground(COLOR_PRIMARIO);
-        tablaContactos.getTableHeader().setForeground(Color.WHITE);
+        tablaContactos.getTableHeader().setForeground(Color.BLACK);
         tablaContactos.setRowHeight(25);
         tablaContactos.setShowGrid(true);
         tablaContactos.setGridColor(Color.LIGHT_GRAY);
@@ -120,6 +129,10 @@ public class AgendaGUI extends JFrame {
         eliminarBtn.addActionListener(e -> eliminarContacto());
         modificarBtn.addActionListener(e -> modificarContacto());
         limpiarBtn.addActionListener(e -> limpiarCampos());
+        buscarBtn.addActionListener(e -> buscarContacto());
+        listarBtn.addActionListener(e -> listarContactos());
+        verificarLlenaBtn.addActionListener(e -> verificarAgendaLlena());
+        salirBtn.addActionListener(e -> salirAplicacion());
 
         tablaContactos.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tablaContactos.getSelectedRow() != -1) {
@@ -135,7 +148,7 @@ public class AgendaGUI extends JFrame {
         JTextField field = new JTextField(20);
         field.setBorder(BorderFactory.createCompoundBorder(
                 field.getBorder(),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
         return field;
     }
@@ -152,7 +165,7 @@ public class AgendaGUI extends JFrame {
     private JButton crearBoton(String texto, Color color) {
         JButton boton = new JButton(texto);
         boton.setBackground(color);
-        boton.setForeground(Color.WHITE);
+        boton.setForeground(Color.BLACK);
         boton.setFocusPainted(false);
         boton.setBorderPainted(false);
         boton.setPreferredSize(new Dimension(100, 35));
@@ -228,6 +241,108 @@ public class AgendaGUI extends JFrame {
         }
     }
 
+    private void limpiarCampos() {
+        SwingUtilities.invokeLater(() -> {
+            nombreField.setText("");
+            apellidoField.setText("");
+            telefonoField.setText("");
+            tablaContactos.clearSelection();
+            nombreField.requestFocus();
+        });
+    }
+
+    private void buscarContacto() {
+        if (!agenda.tieneContactos()) {
+            mostrarMensaje("La agenda está vacía.", "Información", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        String nombre = nombreField.getText().trim();
+        String apellido = apellidoField.getText().trim();
+
+        if (nombre.isEmpty() || apellido.isEmpty()) {
+            mostrarMensaje("Por favor, ingrese nombre y apellido para buscar.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        boolean encontrado = false;
+        Contacto[] contactos = agenda.getContactos();
+        for (int i = 0; i < agenda.getCantidadDeContactos(); i++) {
+            if (contactos[i].getNombre().equalsIgnoreCase(nombre) &&
+                    contactos[i].getApellido().equalsIgnoreCase(apellido)) {
+                mostrarMensaje(
+                        "Contacto encontrado:\n" +
+                                "Nombre: " + contactos[i].getNombre() + "\n" +
+                                "Apellido: " + contactos[i].getApellido() + "\n" +
+                                "Teléfono: " + contactos[i].getTelefono(),
+                        "Contacto Encontrado",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+                encontrado = true;
+                break;
+            }
+        }
+
+        if (!encontrado) {
+            mostrarMensaje("Contacto no encontrado.", "Búsqueda", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void listarContactos() {
+        if (!agenda.tieneContactos()) {
+            mostrarMensaje("La agenda está vacía.", "Información", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Crear una nueva ventana para mostrar la lista
+        JDialog listaDialog = new JDialog(this, "Lista", true);
+        listaDialog.setSize(400, 300);
+        listaDialog.setLocationRelativeTo(this);
+
+        // Crear una tabla para mostrar los contactos ordenados
+        DefaultTableModel modeloListado = new DefaultTableModel(
+                new Object[]{"Nombre", "Apellido", "Teléfono"}, 0
+        );
+        JTable tablaListado = new JTable(modeloListado);
+
+        // Ordenar contactos (usando tu método existente)
+        agenda.ordenarContactos();
+
+        // Llenar la tabla con los contactos ordenados
+        Contacto[] contactos = agenda.getContactos();
+        for (int i = 0; i < agenda.getCantidadDeContactos(); i++) {
+            modeloListado.addRow(new Object[]{
+                    contactos[i].getNombre(),
+                    contactos[i].getApellido(),
+                    contactos[i].getTelefono()
+            });
+        }
+
+        listaDialog.add(new JScrollPane(tablaListado));
+        listaDialog.setVisible(true);
+    }
+
+    private void verificarAgendaLlena() {
+        String mensaje = agenda.agendaLlena() ?
+                "La agenda está llena." :
+                "Aún hay espacio en la agenda.\nEspacios libres: " + agenda.espacioLibres();
+        mostrarMensaje(mensaje, "Estado de la Agenda", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void salirAplicacion(){
+        int confirmacion = JOptionPane.showConfirmDialog(
+                this,
+                "¿Está seguro de que desea salir?",
+                "Confirmar Salida",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirmacion == JOptionPane.YES_OPTION){
+            mostrarMensaje("Saliendo...", "Adiós", JOptionPane.INFORMATION_MESSAGE); dispose();
+            System.exit(0);
+        }
+    }
+
     private void actualizarTabla() {
         modeloTabla.setRowCount(0);
         Contacto[] contactos = agenda.getContactos();
@@ -258,13 +373,6 @@ public class AgendaGUI extends JFrame {
         return true;
     }
 
-    private void limpiarCampos() {
-        nombreField.setText("");
-        apellidoField.setText("");
-        telefonoField.setText("");
-        tablaContactos.clearSelection();
-    }
-
     private void mostrarMensaje(String mensaje, String titulo, int tipo) {
         JOptionPane.showMessageDialog(this, mensaje, titulo, tipo);
     }
@@ -276,6 +384,6 @@ public class AgendaGUI extends JFrame {
             e.printStackTrace();
         }
 
-        SwingUtilities.invokeLater(() -> new AgendaGUI());
+        SwingUtilities.invokeLater(() -> new InteractiveView());
     }
 }
